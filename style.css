@@ -196,6 +196,7 @@ main { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
   padding: 20px;
   z-index: 50;
 }
+.profile-overlay[hidden] { display: none; }
 .profile-card {
   width: 100%; max-width: 420px;
   background: var(--bg-elevated);
