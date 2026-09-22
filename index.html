@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MeleeTiers — Rankings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">MT</span>
+    <span class="brand-name">MeleeTiers</span>
+  </div>
+
+  <nav class="gamemode-tabs" id="gamemode-tabs">
+    <button class="gm-tab active" data-gamemode="Sword">
+      <img src="https://cdn.discordapp.com/emojis/1546582682966822974.png?size=48" alt="">Sword
+    </button>
+    <button class="gm-tab" data-gamemode="Speed">
+      <img src="https://cdn.discordapp.com/emojis/1546582719725568241.png?size=48" alt="">Speed
+    </button>
+    <button class="gm-tab" data-gamemode="Stray">
+      <img src="https://cdn.discordapp.com/emojis/1551737033607880774.png?size=48" alt="">Stray
+    </button>
+  </nav>
+
+  <div class="region-pills" id="region-pills">
+    <button class="region-pill active" data-region="">All</button>
+    <button class="region-pill" data-region="EU">EU</button>
+    <button class="region-pill" data-region="ME">ME</button>
+    <button class="region-pill" data-region="NA">NA</button>
+    <button class="region-pill" data-region="SA">SA</button>
+    <button class="region-pill" data-region="AS">AS</button>
+    <button class="region-pill" data-region="AU">AU</button>
+  </div>
+</header>
+
+<main>
+  <section class="spotlight" id="spotlight">
+    <!-- top player, injected by app.js -->
+  </section>
+
+  <section class="board" id="board">
+    <!-- tier groups + rows, injected by app.js -->
+  </section>
+
+  <p class="empty-state" id="empty-state" hidden>
+    No ranked players yet for this gamemode / region. Once the bot posts a result, they'll show up here.
+  </p>
+</main>
+
+<div class="profile-overlay" id="profile-overlay" hidden>
+  <div class="profile-card" id="profile-card"></div>
+</div>
+
+<footer class="foot">
+  <span>Live from the MeleeTiers tier-test database.</span>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

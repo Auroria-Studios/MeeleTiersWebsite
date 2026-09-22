@@ -1,0 +1,241 @@
+:root {
+  --bg: #0F0D16;
+  --bg-elevated: #17131F;
+  --bg-elevated-2: #1E1829;
+  --line: #2A2436;
+  --gold: #E3B341;
+  --violet: #9B7BF5;
+  --text: #EFEAF9;
+  --muted: #948CA8;
+  --strike: #E2574C;
+  --defense: #4CAF7D;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", system-ui, sans-serif;
+  min-height: 100%;
+}
+
+body {
+  background-image:
+    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(155,123,245,0.14), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 0%, rgba(227,179,65,0.10), transparent 60%);
+  background-attachment: fixed;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+  padding: 18px 32px;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  background: rgba(15,13,22,0.85);
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.brand { display: flex; align-items: center; gap: 10px; margin-right: 8px; }
+.brand-mark {
+  font-family: "Rajdhani", sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  background: linear-gradient(135deg, var(--gold), var(--violet));
+  color: #0F0D16;
+  padding: 5px 9px;
+  border-radius: 6px;
+}
+.brand-name {
+  font-family: "Rajdhani", sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  letter-spacing: 0.01em;
+}
+
+.gamemode-tabs { display: flex; gap: 6px; }
+.gm-tab {
+  display: flex; align-items: center; gap: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted);
+  font-family: "Rajdhani", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color .15s, background .15s, border-color .15s;
+}
+.gm-tab img { width: 18px; height: 18px; }
+.gm-tab:hover { color: var(--text); }
+.gm-tab.active {
+  color: var(--text);
+  background: var(--bg-elevated-2);
+  border-color: var(--line);
+}
+
+.region-pills { display: flex; gap: 5px; margin-left: auto; }
+.region-pill {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 11px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.region-pill:hover { color: var(--text); }
+.region-pill.active { color: #0F0D16; background: var(--gold); border-color: var(--gold); }
+
+main { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+
+.spotlight { margin-bottom: 34px; min-height: 96px; }
+.spotlight-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 24px;
+  background: linear-gradient(120deg, rgba(227,179,65,0.10), rgba(155,123,245,0.06));
+  border: 1px solid rgba(227,179,65,0.25);
+  border-radius: 14px;
+}
+.spotlight-card .avatar { width: 58px; height: 58px; border-radius: 12px; }
+.spotlight-label {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  margin: 0 0 4px;
+}
+.spotlight-name { font-size: 19px; font-weight: 600; margin: 0; }
+.spotlight-sub { color: var(--muted); font-size: 13px; margin: 2px 0 0; }
+.spotlight-tier { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.spotlight-tier img { width: 30px; height: 30px; }
+.spotlight-tier span {
+  font-family: "Rajdhani", sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+}
+
+.tier-group { margin-bottom: 4px; }
+.tier-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 4px 8px;
+  color: var(--muted);
+}
+.tier-divider img { width: 20px; height: 20px; }
+.tier-divider .tier-name {
+  font-family: "Rajdhani", sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+  color: var(--text);
+}
+.tier-divider .tier-count { font-size: 12px; color: var(--muted); }
+.tier-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .12s;
+}
+.row:hover { background: var(--bg-elevated); }
+.row .rank { width: 22px; text-align: right; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.row .avatar { width: 34px; height: 34px; border-radius: 8px; background: var(--bg-elevated-2); }
+.row .ign { font-weight: 500; font-size: 14.5px; }
+.row .discord-name { color: var(--muted); font-size: 12.5px; margin-left: 6px; }
+.row .region-tag {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.row .score {
+  display: flex; align-items: center; gap: 3px;
+  font-size: 12.5px; font-variant-numeric: tabular-nums;
+  min-width: 46px; justify-content: flex-end;
+}
+.row .score.strike { color: var(--strike); }
+
+.empty-state {
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  padding: 60px 20px;
+}
+
+.profile-overlay {
+  position: fixed; inset: 0;
+  background: rgba(10,8,15,0.7);
+  backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  z-index: 50;
+}
+.profile-card {
+  width: 100%; max-width: 420px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 26px;
+}
+.profile-card .p-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+.profile-card .p-avatar { width: 56px; height: 56px; border-radius: 12px; }
+.profile-card .p-name { font-size: 18px; font-weight: 600; margin: 0; }
+.profile-card .p-sub { color: var(--muted); font-size: 12.5px; margin: 2px 0 0; }
+.profile-card .p-close {
+  margin-left: auto;
+  background: none; border: none; color: var(--muted);
+  font-size: 20px; cursor: pointer; line-height: 1;
+}
+.p-gamemode-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+.p-gamemode-row img.gm-icon { width: 18px; height: 18px; }
+.p-gamemode-row .gm-name { font-family: "Rajdhani", sans-serif; font-weight: 600; font-size: 14px; width: 60px; }
+.p-gamemode-row .gm-tier { display: flex; align-items: center; gap: 6px; width: 84px; font-size: 13px; }
+.p-gamemode-row .gm-tier img { width: 18px; height: 18px; }
+.p-bars { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.p-bar-track { height: 5px; border-radius: 3px; background: var(--bg-elevated-2); overflow: hidden; }
+.p-bar-fill { height: 100%; border-radius: 3px; }
+.p-bar-fill.strike { background: var(--strike); }
+.p-bar-fill.defense { background: var(--defense); }
+
+.foot {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 24px;
+}
+
+@media (max-width: 640px) {
+  .topbar { padding: 14px 16px; gap: 14px; }
+  .region-pills { width: 100%; margin-left: 0; overflow-x: auto; }
+  .brand-name { display: none; }
+}
