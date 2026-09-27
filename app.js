@@ -16,6 +16,13 @@ function tierBadge(tier, size = 20) {
   if (icon) return `<img src="${icon}" width="${size}" height="${size}" alt="${tier}">`;
   return `<span>${tier || "Unranked"}</span>`;
 }
+// IGN-only avatar (2D face) — never Discord data, per feedback (#11).
+function mcAvatarUrl(ign) {
+  return ign ? `https://mc-heads.net/avatar/${encodeURIComponent(ign)}/40` : placeholderAvatar();
+}
+function placeholderAvatar() {
+  return `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' rx='9' fill='#2A2436'/></svg>`)}`;
+}
 
 let state = { gamemode: "Sword", region: "" };
 
@@ -36,6 +43,21 @@ document.getElementById("region-pills").addEventListener("click", e => {
   state.region = btn.dataset.region;
   load();
 });
+
+// ── Theme toggle (#13) ──────────────────────────────────────────────────
+const THEME_KEY = "meleetiers-theme";
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  const btn = document.getElementById("theme-toggle");
+  if (btn) btn.textContent = theme === "classic" ? "🌙 Dark" : "☀️ Classic";
+}
+document.getElementById("theme-toggle")?.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme") || "dark";
+  const next = current === "classic" ? "dark" : "classic";
+  localStorage.setItem(THEME_KEY, next);
+  applyTheme(next);
+});
+applyTheme(localStorage.getItem(THEME_KEY) || "dark");
 
 async function load() {
   const board = document.getElementById("board");
@@ -67,15 +89,15 @@ async function load() {
   }
   empty.hidden = true;
 
-  // Spotlight = #1 player (excluding Retired)
+  // Spotlight = #1 player (excluding Retired). IGN only — no Discord names.
   const top = players.find(p => p.tier !== "Retired");
   spotlight.innerHTML = top ? `
     <div class="spotlight-card">
-      <img class="avatar" src="${top.avatar_url || fallbackAvatar(top.username)}" alt="">
+      <img class="avatar" src="${mcAvatarUrl(top.mc_username)}" alt="" onerror="this.style.visibility='hidden'">
       <div>
         <p class="spotlight-label">Top ${state.gamemode}${state.region ? " · " + state.region : ""}</p>
-        <p class="spotlight-name">${escapeHtml(top.mc_username || top.username)}</p>
-        <p class="spotlight-sub">${escapeHtml(top.username)} · ${top.region || "—"}</p>
+        <p class="spotlight-name">${escapeHtml(top.mc_username || "Unverified")}</p>
+        <p class="spotlight-sub">${top.region || "—"}</p>
       </div>
       <div class="spotlight-tier">
         ${tierBadge(top.tier, 30)}
@@ -98,13 +120,11 @@ async function load() {
     const rows = list.map(p => {
       const r = tier === "Retired" ? "—" : rank++;
       return `
-        <div class="row" data-id="${p.discord_id}">
+        <div class="row" data-ign="${escapeHtml(p.mc_username || "")}">
           <span class="rank">${r}</span>
-          <img class="avatar" src="${p.avatar_url || fallbackAvatar(p.username)}" alt="">
-          <span><span class="ign">${escapeHtml(p.mc_username || "—")}</span><span class="discord-name">${escapeHtml(p.username)}</span></span>
+          <img class="avatar" src="${mcAvatarUrl(p.mc_username)}" alt="" onerror="this.style.visibility='hidden'">
+          <span class="ign">${escapeHtml(p.mc_username || "Unverified")}</span>
           <span class="region-tag">${p.region || "—"}</span>
-          <span class="score strike">⚔ ${p.strike ?? 0}</span>
-          <span class="score">🛡 ${p.defense ?? 0}</span>
         </div>`;
     }).join("");
 
@@ -120,11 +140,12 @@ async function load() {
   }).join("");
 
   board.querySelectorAll(".row").forEach(row => {
-    row.addEventListener("click", () => openProfile(row.dataset.id));
+    if (row.dataset.ign) row.addEventListener("click", () => openProfile(row.dataset.ign));
   });
 }
 
-async function openProfile(discordId) {
+// Profile popup, keyed by IGN — no Discord identity ever requested/shown.
+async function openProfile(ign) {
   const overlay = document.getElementById("profile-overlay");
   const card = document.getElementById("profile-card");
   overlay.hidden = false;
@@ -132,7 +153,7 @@ async function openProfile(discordId) {
 
   let p;
   try {
-    const res = await fetch(`/api/profile?id=${discordId}`);
+    const res = await fetch(`/api/profile?ign=${encodeURIComponent(ign)}`);
     p = await res.json();
   } catch (e) {
     card.innerHTML = `<p style="color:var(--muted)">Couldn't load this profile.</p>`;
@@ -149,28 +170,24 @@ async function openProfile(discordId) {
     { key: "stray", label: "Stray", icon: EMOJI.Stray },
   ];
 
+  // Note: no Strike/Defense here on purpose — that system is now entirely
+  // separate (Discord-only, via /profile in the bot), per feedback (#10).
   card.innerHTML = `
     <div class="p-head">
-      <img class="p-avatar" src="${p.avatar_url || fallbackAvatar(p.username)}" alt="">
+      <img class="p-avatar" src="${mcAvatarUrl(p.mc_username)}" alt="">
       <div>
-        <p class="p-name">${escapeHtml(p.mc_username || p.username)}</p>
-        <p class="p-sub">${escapeHtml(p.username)} · ${p.region || "—"}</p>
+        <p class="p-name">${escapeHtml(p.mc_username)}</p>
+        <p class="p-sub">${p.region || "—"}</p>
       </div>
       <button class="p-close" aria-label="Close">×</button>
     </div>
     ${gamemodes.map(gm => {
       const tier = p[`${gm.key}_tier`] || "Unranked";
-      const strike = p[`${gm.key}_strike`] ?? 0;
-      const defense = p[`${gm.key}_defense`] ?? 0;
       return `
         <div class="p-gamemode-row">
           <img class="gm-icon" src="https://cdn.discordapp.com/emojis/${gm.icon}.png?size=48" alt="">
           <span class="gm-name">${gm.label}</span>
           <span class="gm-tier">${tierBadge(tier, 18)} ${tier}</span>
-          <div class="p-bars">
-            <div class="p-bar-track"><div class="p-bar-fill strike" style="width:${Math.min(100, strike / 20 * 100)}%"></div></div>
-            <div class="p-bar-track"><div class="p-bar-fill defense" style="width:${Math.min(100, defense / 20 * 100)}%"></div></div>
-          </div>
         </div>`;
     }).join("")}
   `;
@@ -182,10 +199,6 @@ document.getElementById("profile-overlay").addEventListener("click", e => {
   if (e.target.id === "profile-overlay") e.target.hidden = true;
 });
 
-function fallbackAvatar(seed) {
-  const hue = [...(seed || "?")].reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' rx='9' fill='hsl(${hue},40%25,22%25)'/></svg>`)}`;
-}
 function escapeHtml(s) {
   return String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 }
