@@ -16,7 +16,10 @@ module.exports = async function handler(req, res) {
 
   try {
     const rows = await sql`
-      SELECT mc_username, region, sword_tier, speed_tier, stray_tier
+      SELECT mc_username, region,
+             sword_tier, sword_peak_tier,
+             speed_tier, speed_peak_tier,
+             stray_tier, stray_peak_tier
       FROM profiles
       WHERE lower(mc_username) = lower(${ign})
     `;
