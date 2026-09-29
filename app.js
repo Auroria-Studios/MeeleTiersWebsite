@@ -10,11 +10,13 @@ function tierIconUrl(tier) {
   const id = EMOJI[tier];
   return id ? `https://cdn.discordapp.com/emojis/${id}.png?size=48` : null;
 }
-function tierBadge(tier, size = 20) {
+function tierBadge(tier, size = 20, peakTier = null) {
   const icon = tierIconUrl(tier);
-  if (tier === "Retired") return `<span style="font-size:${size}px">🛡️</span>`;
-  if (icon) return `<img src="${icon}" width="${size}" height="${size}" alt="${tier}">`;
-  return `<span>${tier || "Unranked"}</span>`;
+  // "Peak tiers show up if you hover over the tier" — native title tooltip.
+  const title = peakTier && peakTier !== tier ? ` title="Peak: ${peakTier}"` : "";
+  if (tier === "Retired") return `<span style="font-size:${size}px"${title}>🛡️</span>`;
+  if (icon) return `<img src="${icon}" width="${size}" height="${size}" alt="${tier}"${title}>`;
+  return `<span${title}>${tier || "Unranked"}</span>`;
 }
 // IGN-only avatar (2D face) — never Discord data, per feedback (#11).
 function mcAvatarUrl(ign) {
@@ -100,7 +102,7 @@ async function load() {
         <p class="spotlight-sub">${top.region || "—"}</p>
       </div>
       <div class="spotlight-tier">
-        ${tierBadge(top.tier, 30)}
+        ${tierBadge(top.tier, 30, top.peak_tier)}
         <span>${top.tier}</span>
       </div>
     </div>` : "";
@@ -119,8 +121,9 @@ async function load() {
     const list = groups.get(tier);
     const rows = list.map(p => {
       const r = tier === "Retired" ? "—" : rank++;
+      const hasPeak = p.peak_tier && p.peak_tier !== p.tier;
       return `
-        <div class="row" data-ign="${escapeHtml(p.mc_username || "")}">
+        <div class="row" data-ign="${escapeHtml(p.mc_username || "")}"${hasPeak ? ` title="Peak: ${p.peak_tier}"` : ""}>
           <span class="rank">${r}</span>
           <img class="avatar" src="${mcAvatarUrl(p.mc_username)}" alt="" onerror="this.style.visibility='hidden'">
           <span class="ign">${escapeHtml(p.mc_username || "Unverified")}</span>
@@ -183,8 +186,10 @@ async function openProfile(ign) {
     </div>
     ${gamemodes.map(gm => {
       const tier = p[`${gm.key}_tier`] || "Unranked";
+      const peak = p[`${gm.key}_peak_tier`];
+      const hasPeak = peak && peak !== tier;
       return `
-        <div class="p-gamemode-row">
+        <div class="p-gamemode-row"${hasPeak ? ` title="Peak: ${peak}"` : ""}>
           <img class="gm-icon" src="https://cdn.discordapp.com/emojis/${gm.icon}.png?size=48" alt="">
           <span class="gm-name">${gm.label}</span>
           <span class="gm-tier">${tierBadge(tier, 18)} ${tier}</span>
