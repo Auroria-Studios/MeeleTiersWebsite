@@ -20,9 +20,10 @@ module.exports = async function handler(req, res) {
   }
 
   const tierCol = `${gamemode.toLowerCase()}_tier`;
+  const peakCol = `${gamemode.toLowerCase()}_peak_tier`;
 
   const baseQuery = `
-    SELECT p.mc_username, p.region, p.${tierCol} AS tier
+    SELECT p.mc_username, p.region, p.${tierCol} AS tier, p.${peakCol} AS peak_tier
     FROM profiles p
     WHERE p.${tierCol} IS NOT NULL
   `;
