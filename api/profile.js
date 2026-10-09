@@ -13,11 +13,14 @@ module.exports = async function handler(req, res) {
   if (!id) return res.status(400).json({ error: "Missing ?id=<discordId>." });
 
   try {
+    // Strike Score / Defense Score live only in the separate strike_players
+    // table (the Discord-only Strike & Defense system) — `profiles` only
+    // has tier + peak_tier per gamemode, which is all the website shows.
     const rows = await sql`
-      SELECT u.discord_id, u.username, u.avatar_url, p.mc_username, p.region,
-             p.sword_tier, p.sword_strike, p.sword_defense,
-             p.speed_tier, p.speed_strike, p.speed_defense,
-             p.stray_tier, p.stray_strike, p.stray_defense
+      SELECT u.discord_id, u.username, u.avatar_url, p.mc_username, p.mc_uuid, p.region,
+             p.sword_tier, p.sword_peak_tier,
+             p.speed_tier, p.speed_peak_tier,
+             p.stray_tier, p.stray_peak_tier
       FROM users u
       JOIN profiles p ON p.user_id = u.id
       WHERE u.discord_id = ${id}
