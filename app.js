@@ -14,16 +14,20 @@ function tierBadge(tier, size = 20, peakTier = null) {
   const icon = tierIconUrl(tier);
   // "Peak tiers show up if you hover over the tier" — native title tooltip.
   const title = peakTier && peakTier !== tier ? ` title="Peak: ${peakTier}"` : "";
-  if (tier === "Retired") return `<span style="font-size:${size}px"${title}>🛡️</span>`;
+  if (tier === "Retired") return `<span class="emoji-fallback" style="font-size:${size}px"${title}>🛡️</span>`;
   if (icon) return `<img src="${icon}" width="${size}" height="${size}" alt="${tier}"${title}>`;
-  return `<span${title}>${tier || "Unranked"}</span>`;
+  return `<span class="emoji-fallback"${title}>${tier || "Unranked"}</span>`;
 }
-// IGN-only avatar (2D face) — never Discord data, per feedback (#11).
-function mcAvatarUrl(ign) {
-  return ign ? `https://mc-heads.net/avatar/${encodeURIComponent(ign)}/40` : placeholderAvatar();
-}
-function placeholderAvatar() {
-  return `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' rx='9' fill='#2A2436'/></svg>`)}`;
+
+// Rank position encodes prestige visually — HT1 glows brightest gold, LT5
+// barely at all, Retired reads violet, Unranked is flat and quiet.
+function tierStyle(tier) {
+  if (tier === "Retired") return { color: "var(--violet)", glow: 0.75 };
+  const rankedTiers = TIER_ORDER.slice(0, -1); // exclude "Unranked"
+  const i = rankedTiers.indexOf(tier);
+  if (i === -1) return { color: "var(--muted-dim)", glow: 0 };
+  const glow = Math.max(0.32, 1 - i * 0.06);
+  return { color: "var(--gold)", glow };
 }
 
 let state = { gamemode: "Sword", region: "" };
@@ -46,24 +50,48 @@ document.getElementById("region-pills").addEventListener("click", e => {
   load();
 });
 
-// ── Theme toggle (#13) ──────────────────────────────────────────────────
+// ── Theme toggle ────────────────────────────────────────────────────────────
 const THEME_KEY = "meleetiers-theme";
 function applyTheme(theme) {
-  document.documentElement.setAttribute("data-theme", theme);
-  const btn = document.getElementById("theme-toggle");
-  if (btn) btn.textContent = theme === "classic" ? "🌙 Dark" : "☀️ Classic";
+  const root = document.documentElement;
+  if (theme === "classic") root.setAttribute("data-theme", "classic");
+  else root.removeAttribute("data-theme");
+  document.getElementById("theme-toggle").textContent = theme === "classic" ? "Dark" : "Classic";
 }
-document.getElementById("theme-toggle")?.addEventListener("click", () => {
-  const current = document.documentElement.getAttribute("data-theme") || "dark";
-  const next = current === "classic" ? "dark" : "classic";
-  localStorage.setItem(THEME_KEY, next);
+(function initTheme() {
+  let saved = null;
+  try { saved = localStorage.getItem(THEME_KEY); } catch (_) {}
+  applyTheme(saved === "classic" ? "classic" : "dark");
+})();
+document.getElementById("theme-toggle").addEventListener("click", () => {
+  const isClassic = document.documentElement.getAttribute("data-theme") === "classic";
+  const next = isClassic ? "dark" : "classic";
   applyTheme(next);
+  try { localStorage.setItem(THEME_KEY, next); } catch (_) {}
 });
-applyTheme(localStorage.getItem(THEME_KEY) || "dark");
 
+// ── Export menu ─────────────────────────────────────────────────────────────
+const exportToggle = document.getElementById("export-toggle");
+const exportMenu = document.getElementById("export-menu");
+exportToggle.addEventListener("click", e => {
+  e.stopPropagation();
+  const open = !exportMenu.hidden;
+  exportMenu.hidden = open;
+  exportToggle.setAttribute("aria-expanded", String(!open));
+});
+document.addEventListener("click", () => { exportMenu.hidden = true; exportToggle.setAttribute("aria-expanded", "false"); });
+function exportUrl(format) {
+  const params = new URLSearchParams({ format, gamemode: state.gamemode });
+  return `/api/export?${params}`;
+}
+document.getElementById("export-csv").addEventListener("click", e => { e.preventDefault(); window.location.href = exportUrl("csv"); });
+document.getElementById("export-json").addEventListener("click", e => { e.preventDefault(); window.location.href = exportUrl("json"); });
+
+// ── Leaderboard ─────────────────────────────────────────────────────────────
 async function load() {
   const board = document.getElementById("board");
-  const spotlight = document.getElementById("spotlight");
+  const hero = document.getElementById("spotlight");
+  const meta = document.getElementById("board-meta");
   const empty = document.getElementById("empty-state");
 
   const params = new URLSearchParams({ gamemode: state.gamemode });
@@ -74,8 +102,7 @@ async function load() {
     const res = await fetch(`/api/leaderboard?${params}`);
     data = await res.json();
   } catch (e) {
-    board.innerHTML = "";
-    spotlight.innerHTML = "";
+    board.innerHTML = ""; hero.innerHTML = ""; meta.innerHTML = "";
     empty.hidden = false;
     empty.textContent = "Couldn't reach the leaderboard API. Is DATABASE_URL set on this deployment?";
     return;
@@ -83,29 +110,34 @@ async function load() {
 
   const players = data.players || [];
   if (players.length === 0) {
-    board.innerHTML = "";
-    spotlight.innerHTML = "";
+    board.innerHTML = ""; hero.innerHTML = ""; meta.innerHTML = "";
     empty.hidden = false;
     empty.textContent = "No ranked players yet for this gamemode / region. Once the bot posts a result, they'll show up here.";
     return;
   }
   empty.hidden = true;
 
-  // Spotlight = #1 player (excluding Retired). IGN only — no Discord names.
+  // Hero = #1 player (excluding Retired)
   const top = players.find(p => p.tier !== "Retired");
-  spotlight.innerHTML = top ? `
-    <div class="spotlight-card">
-      <img class="avatar" src="${mcAvatarUrl(top.mc_username)}" alt="" onerror="this.style.visibility='hidden'">
-      <div>
-        <p class="spotlight-label">Top ${state.gamemode}${state.region ? " · " + state.region : ""}</p>
-        <p class="spotlight-name">${escapeHtml(top.mc_username || "Unverified")}</p>
-        <p class="spotlight-sub">${top.region || "—"}</p>
+  hero.innerHTML = top ? `
+    <div class="hero-card">
+      <img class="avatar" src="${mcAvatarUrl(top.mc_username) || fallbackAvatar(top.username)}" alt="" onerror="this.src='${fallbackAvatar(top.username)}'">
+      <div class="hero-text">
+        <p class="hero-label">Top ${state.gamemode}${state.region ? " — " + state.region : ""}</p>
+        <p class="hero-name">${escapeHtml(top.mc_username || "Unverified")}</p>
+        <p class="hero-sub">${top.region || "—"}</p>
       </div>
-      <div class="spotlight-tier">
-        ${tierBadge(top.tier, 30, top.peak_tier)}
+      <div class="hero-tier">
+        ${tierBadge(top.tier, 32, top.peak_tier)}
         <span>${top.tier}</span>
       </div>
     </div>` : "";
+
+  const high3Plus = players.filter(p => {
+    const i = TIER_ORDER.indexOf(p.tier);
+    return p.tier === "Retired" || (i !== -1 && i <= TIER_ORDER.indexOf("HT3"));
+  }).length;
+  meta.innerHTML = `<span><strong>${players.length}</strong> ranked</span><span>·</span><span><strong>${high3Plus}</strong> HT3 or better</span>`;
 
   // Group by tier, in TIER_ORDER, Retired last
   const groups = new Map();
@@ -119,11 +151,11 @@ async function load() {
   let rank = 1;
   board.innerHTML = orderedKeys.map(tier => {
     const list = groups.get(tier);
+    const { color, glow } = tierStyle(tier);
     const rows = list.map(p => {
       const r = tier === "Retired" ? "—" : rank++;
-      const hasPeak = p.peak_tier && p.peak_tier !== p.tier;
       return `
-        <div class="row" data-ign="${escapeHtml(p.mc_username || "")}"${hasPeak ? ` title="Peak: ${p.peak_tier}"` : ""}>
+        <div class="row" data-id="${p.discord_id}" tabindex="0" role="button">
           <span class="rank">${r}</span>
           <img class="avatar" src="${mcAvatarUrl(p.mc_username)}" alt="" onerror="this.style.visibility='hidden'">
           <span class="ign">${escapeHtml(p.mc_username || "Unverified")}</span>
@@ -133,7 +165,7 @@ async function load() {
 
     return `
       <div class="tier-group">
-        <div class="tier-divider">
+        <div class="tier-divider" style="--tier-color:${color}; --tier-glow:${glow}">
           ${tierBadge(tier, 20)}
           <span class="tier-name">${tier}</span>
           <span class="tier-count">${list.length}</span>
@@ -143,12 +175,12 @@ async function load() {
   }).join("");
 
   board.querySelectorAll(".row").forEach(row => {
-    if (row.dataset.ign) row.addEventListener("click", () => openProfile(row.dataset.ign));
+    row.addEventListener("click", () => openProfile(row.dataset.id));
+    row.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openProfile(row.dataset.id); } });
   });
 }
 
-// Profile popup, keyed by IGN — no Discord identity ever requested/shown.
-async function openProfile(ign) {
+async function openProfile(discordId) {
   const overlay = document.getElementById("profile-overlay");
   const card = document.getElementById("profile-card");
   overlay.hidden = false;
@@ -156,7 +188,7 @@ async function openProfile(ign) {
 
   let p;
   try {
-    const res = await fetch(`/api/profile?ign=${encodeURIComponent(ign)}`);
+    const res = await fetch(`/api/profile?id=${discordId}`);
     p = await res.json();
   } catch (e) {
     card.innerHTML = `<p style="color:var(--muted)">Couldn't load this profile.</p>`;
@@ -173,26 +205,31 @@ async function openProfile(ign) {
     { key: "stray", label: "Stray", icon: EMOJI.Stray },
   ];
 
-  // Note: no Strike/Defense here on purpose — that system is now entirely
-  // separate (Discord-only, via /profile in the bot), per feedback (#10).
   card.innerHTML = `
     <div class="p-head">
-      <img class="p-avatar" src="${mcAvatarUrl(p.mc_username)}" alt="">
+      <img class="p-avatar" src="${mcAvatarUrl(p.mc_username) || fallbackAvatar(p.username)}" alt="" onerror="this.src='${fallbackAvatar(p.username)}'">
       <div>
-        <p class="p-name">${escapeHtml(p.mc_username)}</p>
+        <p class="p-name">${escapeHtml(p.mc_username || "Unverified")}</p>
         <p class="p-sub">${p.region || "—"}</p>
       </div>
       <button class="p-close" aria-label="Close">×</button>
     </div>
     ${gamemodes.map(gm => {
-      const tier = p[`${gm.key}_tier`] || "Unranked";
-      const peak = p[`${gm.key}_peak_tier`];
-      const hasPeak = peak && peak !== tier;
+      const tier = p[`${gm.key}_tier`];
+      const hasTier = !!tier;
+      const strike = p[`${gm.key}_strike`] ?? 0;
+      const defense = p[`${gm.key}_defense`] ?? 0;
+      const showStrike = hasTier && TIER_ORDER.indexOf(tier) <= TIER_ORDER.indexOf("HT3") && tier !== "Retired";
+      const showDefense = hasTier && (tier === "Retired" || TIER_ORDER.indexOf(tier) <= TIER_ORDER.indexOf("LT2"));
       return `
-        <div class="p-gamemode-row"${hasPeak ? ` title="Peak: ${peak}"` : ""}>
+        <div class="p-gamemode-row${hasTier ? "" : " is-empty"}">
           <img class="gm-icon" src="https://cdn.discordapp.com/emojis/${gm.icon}.png?size=48" alt="">
           <span class="gm-name">${gm.label}</span>
-          <span class="gm-tier">${tierBadge(tier, 18)} ${tier}</span>
+          <span class="gm-tier">${tierBadge(tier || "Unranked", 18)} ${tier || "Unranked"}</span>
+          <div class="p-bars">
+            ${showStrike ? `<div class="p-bar-row"><span class="p-bar-label">SS</span><div class="p-bar-track"><div class="p-bar-fill strike" style="width:${Math.min(100, strike / 20 * 100)}%"></div></div></div>` : ""}
+            ${showDefense ? `<div class="p-bar-row"><span class="p-bar-label">DS</span><div class="p-bar-track"><div class="p-bar-fill defense" style="width:${Math.min(100, defense / 20 * 100)}%"></div></div></div>` : ""}
+          </div>
         </div>`;
     }).join("")}
   `;
@@ -203,7 +240,17 @@ async function openProfile(ign) {
 document.getElementById("profile-overlay").addEventListener("click", e => {
   if (e.target.id === "profile-overlay") e.target.hidden = true;
 });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") document.getElementById("profile-overlay").hidden = true;
+});
 
+function mcAvatarUrl(mcUsername) {
+  return mcUsername ? `https://mc-heads.net/avatar/${encodeURIComponent(mcUsername)}/40` : fallbackAvatar(mcUsername || "?");
+}
+function fallbackAvatar(seed) {
+  const hue = [...(seed || "?")].reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' rx='9' fill='hsl(${hue},40%25,22%25)'/></svg>`)}`;
+}
 function escapeHtml(s) {
   return String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 }
