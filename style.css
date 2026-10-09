@@ -287,6 +287,14 @@ main { max-width: 880px; margin: 0 auto; padding: 44px 24px 90px; }
   z-index: 50;
   animation: overlay-in .15s ease;
 }
+/* The "hidden" attribute is how app.js opens/closes this overlay, but an
+   author stylesheet's `display` always wins over the browser's built-in
+   `[hidden] { display: none }` default — so without this rule, the flex
+   rule above forced the overlay (and the empty profile-card) to show on
+   every page load, not just when a profile was actually opened. */
+.profile-overlay[hidden] {
+  display: none;
+}
 @keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
 .profile-card {
   width: 100%; max-width: 440px;
