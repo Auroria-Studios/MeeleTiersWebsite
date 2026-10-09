@@ -34,9 +34,13 @@ module.exports = async function handler(req, res) {
   `;
 
   try {
+    // sql() always needs a params array when called with a plain string
+    // (as opposed to a tagged template) — passing none here was throwing
+    // on every request with no region filter, which is the default "All"
+    // view on page load. That's the 500 you were seeing.
     const rows = region
       ? await sql(`${baseQuery} AND p.region = $1`, [region])
-      : await sql(baseQuery);
+      : await sql(baseQuery, []);
 
     rows.sort((a, b) => tierRank(a.tier) - tierRank(b.tier) || (b.strike ?? 0) - (a.strike ?? 0));
 
