@@ -216,20 +216,13 @@ async function openProfile(discordId) {
     </div>
     ${gamemodes.map(gm => {
       const tier = p[`${gm.key}_tier`];
+      const peakTier = p[`${gm.key}_peak_tier`];
       const hasTier = !!tier;
-      const strike = p[`${gm.key}_strike`] ?? 0;
-      const defense = p[`${gm.key}_defense`] ?? 0;
-      const showStrike = hasTier && TIER_ORDER.indexOf(tier) <= TIER_ORDER.indexOf("HT3") && tier !== "Retired";
-      const showDefense = hasTier && (tier === "Retired" || TIER_ORDER.indexOf(tier) <= TIER_ORDER.indexOf("LT2"));
       return `
         <div class="p-gamemode-row${hasTier ? "" : " is-empty"}">
           <img class="gm-icon" src="https://cdn.discordapp.com/emojis/${gm.icon}.png?size=48" alt="">
           <span class="gm-name">${gm.label}</span>
-          <span class="gm-tier">${tierBadge(tier || "Unranked", 18)} ${tier || "Unranked"}</span>
-          <div class="p-bars">
-            ${showStrike ? `<div class="p-bar-row"><span class="p-bar-label">SS</span><div class="p-bar-track"><div class="p-bar-fill strike" style="width:${Math.min(100, strike / 20 * 100)}%"></div></div></div>` : ""}
-            ${showDefense ? `<div class="p-bar-row"><span class="p-bar-label">DS</span><div class="p-bar-track"><div class="p-bar-fill defense" style="width:${Math.min(100, defense / 20 * 100)}%"></div></div></div>` : ""}
-          </div>
+          <span class="gm-tier">${tierBadge(tier || "Unranked", 18, peakTier)} ${tier || "Unranked"}</span>
         </div>`;
     }).join("")}
   `;
