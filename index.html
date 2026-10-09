@@ -3,20 +3,26 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>MeleeTiers — Rankings</title>
+<title>MeleeTiers — PvP Tier Rankings</title>
+<meta name="description" content="Live Sword, Speed and Stray PvP tier rankings." />
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header class="topbar">
   <div class="brand">
-    <span class="brand-mark">MT</span>
-    <span class="brand-name">MeleeTiers</span>
+    <img class="brand-mark" src="assets/logo.svg" alt="" width="34" height="34">
+    <div class="brand-text">
+      <span class="brand-name">MeleeTiers</span>
+      <span class="brand-sub">PvP Tier Rankings</span>
+    </div>
   </div>
 
-  <nav class="gamemode-tabs" id="gamemode-tabs">
+  <nav class="gamemode-tabs" id="gamemode-tabs" aria-label="Gamemode">
     <button class="gm-tab active" data-gamemode="Sword">
       <img src="https://cdn.discordapp.com/emojis/1546582682966822974.png?size=48" alt="">Sword
     </button>
@@ -28,23 +34,37 @@
     </button>
   </nav>
 
-  <div class="region-pills" id="region-pills">
-    <button class="region-pill active" data-region="">All</button>
-    <button class="region-pill" data-region="EU">EU</button>
-    <button class="region-pill" data-region="ME">ME</button>
-    <button class="region-pill" data-region="NA">NA</button>
-    <button class="region-pill" data-region="SA">SA</button>
-    <button class="region-pill" data-region="AS">AS</button>
-    <button class="region-pill" data-region="AU">AU</button>
-  </div>
+  <div class="topbar-right">
+    <div class="region-pills" id="region-pills" aria-label="Region">
+      <button class="region-pill active" data-region="">All</button>
+      <button class="region-pill" data-region="EU">EU</button>
+      <button class="region-pill" data-region="ME">ME</button>
+      <button class="region-pill" data-region="NA">NA</button>
+      <button class="region-pill" data-region="SA">SA</button>
+      <button class="region-pill" data-region="AS">AS</button>
+      <button class="region-pill" data-region="AU">AU</button>
+    </div>
 
-  <button class="theme-toggle" id="theme-toggle">☀️ Classic</button>
+    <div class="export-wrap">
+      <button class="icon-btn" id="export-toggle" aria-haspopup="true" aria-expanded="false">
+        Export
+      </button>
+      <div class="export-menu" id="export-menu" hidden>
+        <a href="#" id="export-csv">Download CSV</a>
+        <a href="#" id="export-json">Download JSON</a>
+      </div>
+    </div>
+
+    <button class="icon-btn" id="theme-toggle">Classic</button>
+  </div>
 </header>
 
 <main>
-  <section class="spotlight" id="spotlight">
+  <section class="hero" id="spotlight">
     <!-- top player, injected by app.js -->
   </section>
+
+  <div class="board-meta" id="board-meta"></div>
 
   <section class="board" id="board">
     <!-- tier groups + rows, injected by app.js -->
@@ -61,6 +81,8 @@
 
 <footer class="foot">
   <span>Live from the MeleeTiers tier-test database.</span>
+  <span class="foot-dot">·</span>
+  <a href="/api/export" class="foot-link">Raw data API</a>
 </footer>
 
 <script src="app.js"></script>
