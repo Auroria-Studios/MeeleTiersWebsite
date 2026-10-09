@@ -321,15 +321,8 @@ main { max-width: 880px; margin: 0 auto; padding: 44px 24px 90px; }
 }
 .p-gamemode-row img.gm-icon { width: 18px; height: 18px; flex: none; }
 .p-gamemode-row .gm-name { font-family: "Rajdhani", sans-serif; font-weight: 600; font-size: 14px; width: 54px; flex: none; }
-.p-gamemode-row .gm-tier { display: flex; align-items: center; gap: 6px; width: 92px; flex: none; font-size: 13px; }
+.p-gamemode-row .gm-tier { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; font-size: 13.5px; }
 .p-gamemode-row .gm-tier img { width: 18px; height: 18px; }
-.p-bars { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.p-bar-row { display: flex; align-items: center; gap: 8px; }
-.p-bar-label { font-size: 10.5px; color: var(--muted-dim); width: 26px; flex: none; }
-.p-bar-track { flex: 1; height: 5px; border-radius: 3px; background: var(--bg-elevated-2); overflow: hidden; }
-.p-bar-fill { height: 100%; border-radius: 3px; transition: width .3s ease; }
-.p-bar-fill.strike { background: var(--strike); }
-.p-bar-fill.defense { background: var(--defense); }
 .p-gamemode-row.is-empty { color: var(--muted-dim); }
 .p-gamemode-row.is-empty .gm-icon { opacity: 0.35; }
 
