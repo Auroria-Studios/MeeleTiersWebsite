@@ -261,6 +261,10 @@ main { max-width: 880px; margin: 0 auto; padding: 44px 24px 90px; }
 .row .rank { width: 22px; text-align: right; color: var(--muted-dim); font-size: 13px; font-variant-numeric: tabular-nums; }
 .row .avatar { width: 32px; height: 32px; border-radius: 8px; background: var(--bg-elevated-2); object-fit: cover; }
 .row .ign { font-weight: 600; font-size: 14.5px; }
+.row .peak-tag {
+  font-size: 11px;
+  color: var(--gold-soft);
+}
 .row .region-tag {
   margin-left: auto;
   font-size: 11px;
