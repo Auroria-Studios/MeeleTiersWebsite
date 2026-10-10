@@ -154,11 +154,13 @@ async function load() {
     const { color, glow } = tierStyle(tier);
     const rows = list.map(p => {
       const r = tier === "Retired" ? "—" : rank++;
+      const peakNote = p.peak_tier && p.peak_tier !== p.tier ? `<span class="peak-tag" title="Peak tier">Peak: ${p.peak_tier}</span>` : "";
       return `
         <div class="row" data-id="${p.discord_id}" tabindex="0" role="button">
           <span class="rank">${r}</span>
           <img class="avatar" src="${mcAvatarUrl(p.mc_username)}" alt="" onerror="this.style.visibility='hidden'">
           <span class="ign">${escapeHtml(p.mc_username || "Unverified")}</span>
+          ${peakNote}
           <span class="region-tag">${p.region || "—"}</span>
         </div>`;
     }).join("");
